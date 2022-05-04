@@ -1,0 +1,232 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import nose.tools
+
+
+
+Data Visualization and Exploratory Data Analysis Lab
+
+Problem 1. Income information
+Read the dataset located here. The information file is here. Save it into the variable income_data. Change the column names to what you like. The last column is related to the income class.
+
+Get acquainted with the information file well before starting work.
+
+You don't need to clean the dataset.
+
+income_data = pd.read_csv("C:\\Users\\Anton.Serbezov\\Downloads\\adult.data")
+# YOUR CODE HERE
+income_data.columns = income_data.columns.str.strip()
+income_data.columns
+income_data.rename(columns = { '39':'age', 
+                               'State-gov':'workclass',
+                                "77516": "fnlwgt",
+                               'Bachelors':'degree',
+                               '13':'education-num:',
+                               'Never-married':'marital-status',
+                               'Adm-clerical':'occupation',
+                               'Not-in-family':'relationship',
+                               'White':'race',
+                               "Male":"sex",
+                               '2174':'capital-gain',
+                               '0':'capital-loss',
+                               '40':'hours-per-week',
+                               'United-States':'native-country',
+                               '<=50K':'>50K'
+                               }, 
+                               inplace = True) 
+							
+
+income_data.head()
+
+
+	age	workclass	fnlwgt	degree	education-num:	marital-status	occupation	relationship	race	sex	capital-gain	capital-loss	hours-per-week	native-country	>50K
+0	50	Self-emp-not-inc	83311	Bachelors	13	Married-civ-spouse	Exec-managerial	Husband	White	Male	0	0	13	United-States	<=50K
+1	38	Private	215646	HS-grad	9	Divorced	Handlers-cleaners	Not-in-family	White	Male	0	0	40	United-States	<=50K
+2	53	Private	234721	11th	7	Married-civ-spouse	Handlers-cleaners	Husband	Black	Male	0	0	40	United-States	<=50K
+3	28	Private	338409	Bachelors	13	Married-civ-spouse	Prof-specialty	Wife	Black	Female	0	0	40	Cuba	<=50K
+4	37	Private	284582	Masters	14	Married-civ-spouse	Exec-managerial	Wife	White	Female	0	0	40	United-States	<=50K
+
+
+nose.tools.assert_is_not_none(income_data)
+
+
+--------------------------------------------------------------------------------------------------
+
+Problem 2.
+How many people have high income (over 50 000 USD per year)? Write a function to return the value. The function should accept the dataframe as a parameter. Work with that parameter.
+
+def get_num_people_with_high_income(dataframe):
+    # YOUR CODE HERE
+    people = len(dataframe['>50K'][dataframe['>50K'].str.contains('>50K')])
+    return people
+
+get_num_people_with_high_income(income_data)
+
+7841
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+Problem 3.
+Plot a histogram of the capital gain. You can see that there are many people with relatively low gains and a few people - with very high gains.
+
+# YOUR CODE HERE
+plt.hist(income_data["capital-gain"],bins =25,color ='green')
+
+plt.show()
+
+
+
+-------------------------------------------------------------------
+Problem 4.
+Write a function which accepts a dataframe and a capital gain value (in USD) and returns how many people are there with greater than or equal to that threshold gain.
+
+def get_num_people_with_higher_gain(dataframe, threshold_gain):
+    # YOUR CODE HERE
+    people1 = dataframe["capital-gain"][dataframe["capital-gain"] >= threshold_gain ]
+    return  len(people1)
+get_num_people_with_higher_gain(income_data, 60000)
+
+159
+
+nose.tools.assert_equal(get_num_people_with_higher_gain(income_data, 60000), 159)
+
+-----------------------------------------------------------------------------------------
+Problem 5.
+Create a pie chart of the number of people by marital status.
+
+# YOUR CODE HERE
+label = income_data["marital-status"].unique()
+fig = plt.figure(figsize =(10, 7))
+plt.pie(income_data["marital-status"].value_counts(), labels=label)
+plt.show()
+-----------------------------------------------------------------------------------------
+Problem 6.¶
+Which type of marital status is the most prominent (i.e. has the most people)? How many are there? Write a function that calculates and returns the two answers.
+
+def most_prominent_marital_status(dataframe):
+    status = dataframe["marital-status"].value_counts().idxmax()
+    num_people = dataframe["marital-status"].value_counts().max()
+    # YOUR CODE HERE
+    return (status, num_people)
+most_prominent_marital_status(income_data)
+
+(' Married-civ-spouse', 14976)
+
+(status, num_people) = most_prominent_marital_status(income_data)
+nose.tools.assert_not_equal(status, "")
+nose.tools.assert_greater(num_people, 10000)
+
+-------------------------------------------------------------------------------------------------------------------------------
+Problem 7.¶
+Create a histogram of all people's ages. Use the default settings. Add the label "Age" on the x-axis and "Count" on the y-axis.
+
+# YOUR CODE HERE
+plt.hist(income_data["age"],bins=30,)
+plt.xlabel('Age')
+plt.ylabel('Count')
+plt.show()
+
+------------------------------------------------------------------------------------------------------------------------------
+Problem 8.
+Let's get another view of the data. Split the ages into three:
+
+Young people:  age<=30age<=30 
+Middle-aged people:  30<age<=6030<age<=60 
+Old people:  60<age60<age 
+Return the counts in the following function. Which age group has the most people? How many are there?
+
+def get_num_people_by_age_category(dataframe):
+    young, middle_aged, old = (0, 0, 0)
+    # YOUR CODE HERE
+
+    yound_people = dataframe[dataframe["age"] <= 30]
+    middle_aged_people = dataframe[(dataframe["age"] > 30) & (dataframe["age"] <= 60)]
+    old_people = dataframe[dataframe["age"] > 60]
+        
+    young = len(yound_people)
+    middle_aged = len(middle_aged_people)    
+    old = len(old_people)
+    
+    return young, middle_aged, old
+
+young, middle_aged, old = get_num_people_by_age_category(income_data)
+nose.tools.assert_greater(young, 0)
+nose.tools.assert_greater(middle_aged, 0)
+nose.tools.assert_greater(old, 0)
+
+Now we can create a bar chart. Execute the code below to see it.
+
+plt.title("Distribution of people by age groups")
+plt.bar(range(3), [young, middle_aged, old])
+plt.xticks(range(3), ["Young", "Middle-aged", "Old"])
+plt.ylabel("Count")
+plt.show()
+----------------------------------------------------------------------------------------------------------------------
+Problem 9.
+Have a look at the native country of the people. The highest number of people are, as expected, from the US. 
+What country makes for the second highest number of people? How many are they? 
+Write a function to calculate and return the answer given a dataframe. 
+DO NOT hardcode the answer, e.g. return "Germany".
+
+def get_second_highest_num_people(dataframe):
+    num_people, country = 0, ""
+    # YOUR CODE HERE
+    second = dataframe["native-country"].value_counts().nlargest(2)
+    two = str(second[1:])
+    two = two.split()
+    num_people = int(two[1])
+    country = str(two[0])
+    return num_people, country
+
+get_second_highest_num_people(income_data)
+
+(643, 'Mexico')
+
+num_people, country = get_second_highest_num_people(income_data)
+nose.tools.assert_greater(num_people, 0)
+nose.tools.assert_not_equal(country, "")
+
+-------------------------------------------------------------------------------------------------------------------------
+Problem 10.
+Which people are most overworked? Group all data by occupation and calculate the mean hours per week for each group.
+
+Write a function that calculates and returns all mean hours per week as a Series. Sort the results in descending order (most hours to fewestt hours).
+
+# removing the space
+income_data["occupation"] = income_data["occupation"].str.strip()
+
+def get_mean_working_hours_by_income(dataframe):
+    # YOUR CODE HERE
+    return dataframe.groupby("occupation")["hours-per-week"].mean().sort_values(ascending = False)
+	
+
+hours = get_mean_working_hours_by_income(income_data)
+print(hours)
+nose.tools.assert_almost_equal(hours["Handlers-cleaners"], 37.95, delta = 0.01)
+
+occupation
+Farming-fishing      46.989940
+Exec-managerial      44.987703
+Transport-moving     44.656230
+Protective-serv      42.870570
+Prof-specialty       42.386715
+Craft-repair         42.304221
+Sales                40.781096
+Machine-op-inspct    40.755744
+Armed-Forces         40.666667
+Tech-support         39.432112
+Handlers-cleaners    37.947445
+Adm-clerical         37.557708
+Other-service        34.701669
+Priv-house-serv      32.885906
+?                    31.906131
+Name: hours-per-week, dtype: float64
+
+
+
+Finally, let's plot a bar chart. Check the values carefully. If your do not match, feel free to edit the chart generation code below.
+
+plt.figure(figsize = (10, 6))
+plt.title("Weekly hours by occupation")
+plt.barh(range(len(hours)), hours)
+plt.yticks(list(range(len(hours))), hours.index)
+plt.show()

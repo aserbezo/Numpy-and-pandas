@@ -1,0 +1,239 @@
+import pandas as pd
+import nose.tools
+
+Reading, tidying and cleaning data. Preparing data for exploration, mining, analysis and learning
+
+Problem 1. Read the dataset
+The dataset here contains information about fuel consumption in different cars.
+
+Click the "Data Folder" link and read auto_mpg.data into Python. You can download it, if you wish, or you can read it directly from the link.
+
+Give meaningful (and "Pythonic") column names, as per the auto_mpg.names file:
+
+mpg
+cylinders
+displacement
+horsepower
+weight
+acceleration
+model_year
+origin
+car_name
+
+
+data = pd.read_csv('http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data',header = None, delim_whitespace=True)
+data.columns = ['mpg', 'cylinders', 'displacement','horsepower','weight','acceleration', 'model_year','origin','car_name']
+nose.tools.assert_is_not_none(data)
+
+
+-------------------------------------------------------------------------------
+Problem 2.
+Print the first 4 rows in the dataset to get a feel of what it looks like:
+# YOUR CODE HERE
+data.head(4)
+
+
+mpg	cylinders	displacement	horsepower	weight	acceleration	model_year	origin	car_name
+0	18.0	8	307.0	130.0	3504.0	12.0	70	1	chevrolet chevelle malibu
+1	15.0	8	350.0	165.0	3693.0	11.5	70	1	buick skylark 320
+2	18.0	8	318.0	150.0	3436.0	11.0	70	1	plymouth satellite
+3	16.0	8	304.0	150.0	3433.0	12.0	70	1	amc rebel sst
+
+-------------------------------------------------------------------------------------------------------------
+Problem 3.
+Write a function which accepts a dataset and returns the number of observations and features in it, like so:
+
+10 observations on 15 features
+
+Where 10 and 15 should be replaced with the real numbers. Test your function with the auto_mpg dataset.
+
+Make sure the function works with other datasets (don't worry about "1 features" or "1 observations", just leave it as it is).
+
+def observations_and_features(dataset):
+    """
+    Returns the number of observations and features in the provided dataset
+    """
+    observations = None
+    features = None
+    # YOUR CODE HERE
+    observations, features = dataset.shape
+    return "{} observations on {} features".format(observations, features)
+	
+	observations_and_features(data)
+	
+	'398 observations on 9 features'
+	
+-------------------------------------------------------------------------------------------
+Problem 4.
+Inspect the data types for each column.
+
+# YOUR CODE HERE
+data.dtypes
+
+mpg             float64
+cylinders         int64
+displacement    float64
+horsepower       object
+weight          float64
+acceleration    float64
+model_year        int64
+origin            int64
+car_name         object
+dtype: object
+
+----------------------------------------------------------------------------------------------
+Problem 5.
+
+The horsepower column looks strange. It's a string but it must be a floating-point number. Find out why this is so and convert it to floating-point number.
+
+# YOUR CODE HERE
+data.horsepower = pd.to_numeric(data.horsepower, errors='coerce')
+
+nose.tools.assert_equal(data.horsepower.dtype, "float64")
+data.dtypes
+
+mpg             float64
+cylinders         int64
+displacement    float64
+horsepower      float64
+weight          float64
+acceleration    float64
+model_year        int64
+origin            int64
+car_name         object
+dtype: object
+
+-------------------------------------------------------------------------
+Problem 6.¶
+We saw that the horsepower column contained null values. Display the rows which contain those values. Assign the resulting dataframe to the unknown_hp variable.
+
+
+def get_unknown_hp(dataframe):
+    """
+    Returns the rows in the provided dataframe where the "horsepower" column is NaN
+    """
+    unknown_hp = None
+    # YOUR CODE HERE
+    unknown_hp = dataframe[dataframe.horsepower.isnull()]
+    return unknown_hp
+	
+cars_with_unknown_hp = get_unknown_hp(data)
+print(cars_with_unknown_hp)
+
+ mpg  cylinders  displacement  horsepower  weight  acceleration  \
+32   25.0          4          98.0         NaN  2046.0          19.0   
+126  21.0          6         200.0         NaN  2875.0          17.0   
+330  40.9          4          85.0         NaN  1835.0          17.3   
+336  23.6          4         140.0         NaN  2905.0          14.3   
+354  34.5          4         100.0         NaN  2320.0          15.8   
+374  23.0          4         151.0         NaN  3035.0          20.5   
+
+     model_year  origin              car_name  
+32           71       1            ford pinto  
+126          74       1         ford maverick  
+330          80       2  renault lecar deluxe  
+336          80       1    ford mustang cobra  
+354          81       2           renault 18i  
+374          82       1        amc concord dl  
+
+-------------------------------------------------------------------------------------------------
+Problem 7.
+It seems like the NaN values are a small fraction of all values. We can try one of several things:
+
+Remove them
+Replace them (e.g. with the mean power of all cars)
+Look up the models on the internet and try our best guess on the power
+The third one is probably the best but the first one will suffice since these records are too few. Remove those values. Save the dataset in the same mpg_data variable. Ensure there are no more NaNs.
+
+# YOUR CODE HERE
+data = data.dropna()
+
+nose.tools.assert_equal(len(get_unknown_hp(data)), 0)
+
+
+----------------------------------------------------------------------------
+Problem 8.
+Display all unique model years. Assign them to the variable model_years.
+
+def get_unique_model_years(dataframe):
+    """
+    Returns the unique values of the "model_year" column
+    of the dataframe
+    """
+    model_years = None
+    # YOUR CODE HERE
+    model_years = data.model_year.unique()
+    return model_years
+	
+	
+model_years = get_unique_model_years(data)
+print(model_years)
+[70 71 72 73 74 75 76 77 78 79 80 81 82]
+
+-----------------------------------------------------------------------------------------------------------------------------
+Problem 9.
+These don't look so good. Convert them to real years, like 70 -> 1970, 71 -> 1971. Replace the column values in the dataframe.
+
+# YOUR CODE HERE
+data.model_year += 1900
+
+model_years = get_unique_model_years(data)
+print(model_years)
+
+[1970 1971 1972 1973 1974 1975 1976 1977 1978 1979 1980 1981 1982]
+
+-------------------------------------------------------------------------------------------------------------------------------
+Problem 10.
+The data looks quite good now. Let's try some exploration.
+
+Write a function to find the cars which have the smallest number of cylinders and print their model names. Return a list of car names.
+
+
+
+def get_model_names_smallest_cylinders(dataframe):
+    """
+    Returns the names of the cars with the smallest number of cylinders
+    """
+    car_names = None
+    # YOUR CODE HERE
+    car_names = dataframe[dataframe.cylinders == dataframe.cylinders.min()][['car_name']]
+    return car_names
+	
+
+car_names = get_model_names_smallest_cylinders(data)
+print(car_names)
+nose.tools.assert_equal(car_names.shape, (4,1))
+
+            car_name
+71   mazda rx2 coupe
+111        maxda rx3
+243       mazda rx-4
+334    mazda rx-7 gs
+
+------------------------------------------------------------------------------------------------------------------------------
+Problem 11.
+Finally, let's see some connections between variables. These are also called correlations.
+
+Find how to calculate correlations between different columns using pandas.
+
+Hint: The correlation function in pandas returns a DataFrame by default. You need only one value from it.
+
+Create a function which accepts a dataframe and two columns and prints the correlation coefficient between those two columns.
+
+
+def calculate_correlation(dataframe, first_column, second_column):
+    """
+    Calculates and returns the correlation coefficient between the two columns in the dataframe.
+    """
+    correlation = None
+    # YOUR CODE HERE
+    correlation = dataframe[first_column].corr(dataframe[second_column])
+    return correlation
+
+
+hp_weight = calculate_correlation(data, "horsepower", "weight")
+print("Horsepower:Weight correlation coefficient:", hp_weight)
+nose.tools.assert_almost_equal(hp_weight, 0.864537737574, delta = 0.01)
+
+Horsepower:Weight correlation coefficient: 0.864537737574
+
